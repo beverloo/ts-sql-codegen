@@ -7,8 +7,8 @@ import assert from "assert";
 import { getConnection } from "./helpers/connection-source";
 import { extractColumnsFrom } from "ts-sql-query/extras/utils";
 
-const schemaPath = path.join(__dirname, "data/test.schema.yaml");
-const connectionSourcePath = path.join(__dirname, "helpers/connection-source");
+const schemaPath = path.join(__dirname, "data", "test.schema.yaml");
+const connectionSourcePath = path.join(__dirname, "helpers", "connection-source");
 const outputDirPath = path.join(__dirname, "generated");
 
 const fieldMappings: FieldMapping[] = [
@@ -19,7 +19,7 @@ const fieldMappings: FieldMapping[] = [
         kind: "enum",
         tsType: {
           name: "Genre",
-          importPath: path.join(__dirname, "helpers/types"),
+          importPath: path.join(__dirname, "helpers", "types"),
         },
       },
     },
@@ -33,11 +33,11 @@ const fieldMappings: FieldMapping[] = [
         dbType: { name: "jsonb" },
         tsType: {
           name: "ChapterMetadata",
-          importPath: path.join(__dirname, "helpers/types"),
+          importPath: path.join(__dirname, "helpers", "types"),
         },
         adapter: {
           name: "ChapterMetadataAdapter",
-          importPath: path.join(__dirname, "helpers/adapters"),
+          importPath: path.join(__dirname, "helpers", "adapters"),
         },
       },
     },
@@ -51,6 +51,7 @@ describe("Generator", function () {
   beforeEach(async () => {
     try {
       await fs.rm(outputDirPath, {
+        force: true,
         recursive: true
       });
     } catch (e) {
@@ -61,6 +62,7 @@ describe("Generator", function () {
   afterEach(async () => {
     try {
       await fs.rm(outputDirPath, {
+        force: true,
         recursive: true
       });
     } catch (e) {

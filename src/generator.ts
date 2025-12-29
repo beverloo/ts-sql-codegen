@@ -4,7 +4,7 @@ import Handlebars from "handlebars";
 import { register } from "hbs-dedent-helper";
 import yaml from "js-yaml";
 import { isObject, camelCase, isEmpty, last, memoize, upperFirst } from "lodash";
-import path from "path/posix";
+import path from "path";
 import { match } from "ts-pattern";
 import {
   fieldMappings,
@@ -212,6 +212,13 @@ export class Generator {
     });
   }
 
+  protected maybeCorrectPathSeparators(inputPath: string): string {
+    if (path.sep === path.posix.sep)
+      return inputPath;
+
+    return inputPath.replaceAll(path.sep, path.posix.sep);
+  }
+
   protected getFieldsInput(table: Table, pkCol: Column | null): FieldTmplInput[] {
     return table.columns
       .filter((col) => {
@@ -355,10 +362,10 @@ export class Generator {
       path.dirname(outputFilePath),
       this.resolvePath(csPath)
     );
-    return path.join(
+    return this.maybeCorrectPathSeparators(path.join(
       path.dirname(relPath),
       path.basename(relPath)
-    );
+    ));
   }
 
   protected getAdapterImports(
@@ -454,10 +461,10 @@ export class Generator {
     importedItem: ImportedItem
   ) {
     if (importedItem.isRelative === false) return importPath;
-    const result: string = path.relative(
+    const result: string = this.maybeCorrectPathSeparators(path.relative(
       path.dirname(filePath),
       this.resolvePath(importPath)
-    );
+    ));
     if (result.startsWith(".")) {
       return result;
     } else {
