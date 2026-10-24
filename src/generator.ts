@@ -4,7 +4,7 @@ import Handlebars from "handlebars";
 import { register } from "hbs-dedent-helper";
 import yaml from "js-yaml";
 import { isObject, camelCase, isEmpty, last, memoize, upperFirst } from "lodash";
-import path from "path/posix";
+import path from "path";
 import { match } from "ts-pattern";
 import {
   fieldMappings,
@@ -161,7 +161,7 @@ export class Generator {
     const tableName = this.extractTableName(table.name);
     const pkCol = this.findPrimaryKey(table);
     const fields = this.getFieldsInput(table, pkCol);
-    const dbConnectionSource = this.getConnectionSourceImportPath(filePath);
+    const dbConnectionSource = this.getConnectionSourceImportPath(filePath).replace(/\\/g, "/");
     const exportTableClass = this.opts.export?.tableClasses ?? true;
     const wrapperTypeImports: ImportTmplInput[] = [];
     const className = this.getTableMapperClassName(table.name, tableKind);
@@ -459,9 +459,9 @@ export class Generator {
       this.resolvePath(importPath)
     );
     if (result.startsWith(".")) {
-      return result;
+      return result.replace(/\\/g, "/");
     } else {
-      return "./" + result;
+      return "./" + result.replace(/\\/g, "/");
     }
   }
 
