@@ -13,18 +13,6 @@ const outputDirPath = path.join(__dirname, "generated");
 
 const fieldMappings: FieldMapping[] = [
   {
-    columnType: "genre",
-    generatedField: {
-      type: {
-        kind: "enum",
-        tsType: {
-          name: "Genre",
-          importPath: path.join(__dirname, "helpers/types"),
-        },
-      },
-    },
-  },
-  {
     tableName: "chapters",
     columnName: "metadata",
     generatedField: {
@@ -175,6 +163,36 @@ describe("Generator", function () {
           });
       }
     });
+  });
+  it("allows exporting enums", async () => {
+    const generator = new Generator({
+      schemaPath,
+      connectionSourcePath,
+      outputDirPath,
+      tables: {
+        include: [],
+      },
+      enums: {
+        include: ["genre"],
+      },
+    });
+    await generator.generate();
+    await snap(await readAllGenerated());
+  });
+  it("allows excluding enums", async () => {
+    const generator = new Generator({
+      schemaPath,
+      connectionSourcePath,
+      outputDirPath,
+      tables: {
+        include: ["authors"],
+      },
+      enums: {
+        exclude: ["genre"],
+      },
+    });
+    await generator.generate();
+    await snap(await readAllGenerated());
   });
   it("allows exporting row types", async () => {
     const generator = new Generator({
@@ -343,19 +361,6 @@ describe("Generator", function () {
       },
       fieldMappings: [
         {
-          columnType: "genre",
-          generatedField: {
-            type: {
-              kind: "enum",
-              tsType: {
-                name: "Genre",
-                importPath: path.join(__dirname, "helpers/types"),
-                isDefault: true,
-              },
-            },
-          },
-        },
-        {
           tableName: "chapters",
           columnName: "metadata",
           generatedField: {
@@ -392,19 +397,6 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
-        {
-          columnType: "genre",
-          generatedField: {
-            type: {
-              kind: "enum",
-              tsType: {
-                name: "Genre",
-                importPath: path.join(__dirname, "helpers/types"),
-                isDefault: true,
-              },
-            },
-          },
-        },
         {
           tableName: "chapters",
           columnName: "metadata",
@@ -478,6 +470,10 @@ describe("Generator", function () {
         tableClasses: false,
       },
       naming: {
+        enumConstantNamePrefix: 'ECP',
+        enumConstantNameSuffix: 'ECS',
+        enumTypeNamePrefix: 'ETP',
+        enumTypeNameSuffix: 'ETS',
         insertableRowTypeNamePrefix: 'IRP',
         insertableRowTypeNameSuffix: 'IRS',
         insertableValuesTypeNamePrefix: 'IVP',

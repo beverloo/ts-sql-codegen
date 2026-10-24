@@ -12,7 +12,7 @@ import {
 } from "ts-sql-query/extras/types";
 import {
     Genre,
-} from "../helpers/types";
+} from "./Genre";
 
 export class AuthorBooksTable extends View<DBConnection, 'AuthorBooksTable'> {
     id = this.optionalColumn('id', 'uuid');
@@ -196,7 +196,7 @@ import {
 } from "ts-sql-query/extras/utils";
 import {
     Genre,
-} from "../helpers/types";
+} from "./Genre";
 import {
     DynamicCondition,
 } from "ts-sql-query/expressions/dynamicConditionUsingFilters";
@@ -484,3 +484,19 @@ export class ChaptersCrudRepo {
             .executeDeleteMany();
     }
 }
+
+
+// Genre.ts :
+/**
+ * DO NOT EDIT:
+ *
+ * This file has been auto-generated from database schema using ts-sql-codegen.
+ * Any changes will be overwritten.
+ */
+export const kGenre = {
+    fantasy: "fantasy",
+    scifi: "scifi",
+    horror: "horror",
+} as const;
+
+export type Genre = keyof typeof kGenre;

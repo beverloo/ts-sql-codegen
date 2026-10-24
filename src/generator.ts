@@ -7,16 +7,17 @@ import { isObject, camelCase, isEmpty, last, memoize, upperFirst } from "lodash"
 import path from "path";
 import { match } from "ts-pattern";
 import {
+  FieldMapping,
   fieldMappings,
   GeneratedField,
   GeneratedFieldType,
   ImportedItem
 } from "./field-mappings";
 import { FileRemover } from "./file-remover";
-import { GeneratorOpts, GeneratorOptsSchema, NamingOptions, NamingOptionsSchema } from "./generator-options";
+import { GeneratorOpts, GeneratorOptsSchema, Inclusion, NamingOptions, NamingOptionsSchema } from "./generator-options";
 import { doesMatchNameOrPattern, doesMatchNameOrPatternNamespaced } from "./matcher";
 import { Logger } from "./logger"
-import { Column, Table, TblsSchema } from "./tbls-types";
+import { Column, Enum, Table, TblsSchema } from "./tbls-types";
 
 register();
 
@@ -75,6 +76,7 @@ interface RepoInput {
 export class Generator {
   protected opts: z.output<typeof GeneratorOptsSchema>;
   protected naming: NamingOptions;
+  protected enumFieldMappings: FieldMapping[] = [];
 
   private writtenFiles = new Set<string>()
   public logger: Logger = console;
@@ -85,7 +87,9 @@ export class Generator {
   }
 
   protected getFieldMappings = memoize(() => {
-    return (this.opts.fieldMappings ?? []).concat(fieldMappings);
+    return (this.opts.fieldMappings ?? [])
+      .concat(this.enumFieldMappings)
+      .concat(fieldMappings);
   });
 
   protected getTemplatePath = memoize(() => {
@@ -112,13 +116,34 @@ export class Generator {
       "utf8"
     );
     const schema = TblsSchema.parse(yaml.load(rawSchema));
-    await Promise.all(
-      schema.tables.map(async (table) => {
-        if (this.shouldProcess(table)) {
+    this.enumFieldMappings = (schema.enums ?? []).map((enumItem) => ({
+      columnType: this.extractName(enumItem.name),
+      generatedField: {
+        type: {
+          kind: "enum",
+          tsType: {
+            name: this.getEnumTypeName(enumItem.name),
+            importPath: path.join(
+              this.opts.outputDirPath,
+              this.getEnumTypeName(enumItem.name)
+            ),
+          },
+        },
+      },
+    }));
+    this.getFieldMappings.cache.clear?.();
+    await Promise.all([
+      ...schema.tables.map(async (table) => {
+        if (this.shouldProcess(table, this.opts.tables)) {
           await this.generateTableMapper(table);
         }
-      })
-    );
+      }),
+      ...(schema.enums ?? []).map(async (enumItem) => {
+        if (this.shouldProcess(enumItem, this.opts.enums)) {
+          await this.generateEnum(enumItem);
+        }
+      }),
+    ]);
     await new FileRemover(
       this.opts,
       this.writtenFiles,
@@ -126,12 +151,11 @@ export class Generator {
     ).removeExtraneousFiles()
   }
 
-  protected shouldProcess(table: Table) {
-    const filter = this.opts.tables;
+  protected shouldProcess(item: Table | Enum, filter?: Inclusion | null) {
     if (
       filter?.include &&
       filter.include.findIndex((it) =>
-        doesMatchNameOrPatternNamespaced(it, table.name)
+        doesMatchNameOrPatternNamespaced(it, item.name)
       ) < 0
     ) {
       return false;
@@ -139,7 +163,7 @@ export class Generator {
     if (
       filter?.exclude &&
       filter.exclude.findIndex((it) =>
-        doesMatchNameOrPatternNamespaced(it, table.name)
+        doesMatchNameOrPatternNamespaced(it, item.name)
       ) >= 0
     ) {
       return false;
@@ -156,9 +180,19 @@ export class Generator {
       .otherwise(() => null);
   }
 
+  protected async getEnumTemplateInput(enumItem: Enum) {
+    return this.preProcessTemplateInput({
+      enum: {
+        constantName: this.getEnumConstantName(enumItem.name),
+        typeName: this.getEnumTypeName(enumItem.name),
+        values: enumItem.values,
+      },
+    });
+  }
+
   protected async getTableTemplateInput(table: Table, tableKind: TableKind, filePath: string) {
     // Qualified table name with schema prefix
-    const tableName = this.extractTableName(table.name);
+    const tableName = this.extractName(table.name);
     const pkCol = this.findPrimaryKey(table);
     const fields = this.getFieldsInput(table, pkCol);
     const dbConnectionSource = this.getConnectionSourceImportPath(filePath).replace(/\\/g, "/");
@@ -306,9 +340,19 @@ export class Generator {
       return;
     }
     const filePath = this.getOutputFilePath(table, tableKind);
-    const templateInput = await this.getTableTemplateInput(table, tableKind, filePath)
+    const templateInput = await this.getTableTemplateInput(table, tableKind, filePath);
+    await this.writeOutputFile(filePath, templateInput, table);
+  }
+
+  protected async generateEnum(enumItem: Enum) {
+    const filePath = this.getOutputFilePath(enumItem);
+    const templateInput = await this.getEnumTemplateInput(enumItem);
+    await this.writeOutputFile(filePath, templateInput, enumItem);
+  }
+
+  protected async writeOutputFile(filePath: string, templateInput: any, item: Table | Enum) {
     const template = await this.getCompiledTemplate();
-    const output = await this.postProcessOutput(template(templateInput), table);
+    const output = await this.postProcessOutput(template(templateInput), item);
     await fs.mkdir(path.dirname(filePath), {
       recursive: true
     });
@@ -489,7 +533,7 @@ export class Generator {
     return input;
   }
 
-  protected async postProcessOutput(output: string, _table: Table) {
+  protected async postProcessOutput(output: string, _item: Table | Enum) {
     const sections = [output];
     if (this.opts.rawContent?.before) {
       sections.unshift(this.opts.rawContent.before)
@@ -498,6 +542,18 @@ export class Generator {
       sections.push(this.opts.rawContent.after)
     }
     return sections.join('\n');
+  }
+
+  protected getEnumConstantName(enumName: string) {
+    return this.naming.enumConstantNamePrefix +
+      this.getPascalCasedTableName(enumName) +
+      this.naming.enumConstantNameSuffix;
+  }
+
+  protected getEnumTypeName(enumName: string) {
+    return this.naming.enumTypeNamePrefix +
+      this.getPascalCasedTableName(enumName) +
+      this.naming.enumTypeNameSuffix;
   }
 
   protected getCrudRepoName(tableName: string) {
@@ -680,13 +736,16 @@ export class Generator {
     };
   }
 
-  protected getOutputFilePath(table: Table, tableKind: TableKind) {
-    const fileName = this.getOutputFileName(table, tableKind);
+  protected getOutputFilePath(item: Table | Enum, tableKind?: TableKind) {
+    const fileName = this.getOutputFileName(item, tableKind);
     return path.join(this.opts.outputDirPath, fileName);
   }
 
-  protected getOutputFileName(table: Table, tableKind: TableKind) {
-    return this.getTableMapperClassName(table.name, tableKind) + ".ts";
+  protected getOutputFileName(item: Table | Enum, tableKind?: TableKind) {
+    if (!("columns" in item)) {
+      return this.getEnumTypeName(item.name) + ".ts";
+    }
+    return this.getTableMapperClassName(item.name, tableKind!) + ".ts";
   }
 
   protected findPrimaryKey(table: Table) {
@@ -719,8 +778,8 @@ export class Generator {
       ?.wrapper
   }
 
-  protected extractTableName(configTableName: string) {
-    return last(configTableName.split(".")) as string;
+  protected extractName(configName: string) {
+    return last(configName.split(".")) as string;
   }
 
   protected getSelectedRowTypeName(tableName: string) {

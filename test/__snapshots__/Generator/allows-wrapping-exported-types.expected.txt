@@ -41,3 +41,19 @@ export type AuthorsURow = EnforceUpdateProps<UpdatableRow<AuthorsTable>>;
 export type Authors = SelectedValues<AuthorsTable>;
 export type InsertableAuthors = InsertableValues<AuthorsTable>;
 export type UpdatableAuthors = UpdatableValues<AuthorsTable>;
+
+
+// Genre.ts :
+/**
+ * DO NOT EDIT:
+ *
+ * This file has been auto-generated from database schema using ts-sql-codegen.
+ * Any changes will be overwritten.
+ */
+export const kGenre = {
+    fantasy: "fantasy",
+    scifi: "scifi",
+    horror: "horror",
+} as const;
+
+export type Genre = keyof typeof kGenre;
