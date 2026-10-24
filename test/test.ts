@@ -13,6 +13,19 @@ const outputDirPath = path.join(__dirname, "generated");
 
 const fieldMappings: FieldMapping[] = [
   {
+    columnName: "format",
+    generatedField: {
+      type: {
+        kind: "enum",
+        dbType: { name: "format" },
+        tsType: {
+          name: "Format",
+          importPath: path.join(__dirname, "helpers/types"),
+        },
+      },
+    },
+  },
+  {
     tableName: "chapters",
     columnName: "metadata",
     generatedField: {
@@ -381,6 +394,7 @@ describe("Generator", function () {
             },
           },
         },
+        ...fieldMappings,
       ],
     });
     await generator.generate();
@@ -418,6 +432,7 @@ describe("Generator", function () {
             },
           },
         },
+        ...fieldMappings,
       ],
       includeDBTypeWhenIsOptional: true,
     });
@@ -438,6 +453,7 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
+        ...fieldMappings,
         {
           columnType: "genre",
           generatedField: {
@@ -518,6 +534,7 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
+        ...fieldMappings,
         {
           columnType: "genre",
           generatedField: {
@@ -550,6 +567,7 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
+        ...fieldMappings,
         {
           columnType: "genre",
           generatedField: {
@@ -663,6 +681,7 @@ it("supports custom int field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -695,6 +714,7 @@ it("supports custom int field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -728,6 +748,7 @@ it("supports custom double field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -760,6 +781,7 @@ it("supports custom double field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -793,6 +815,7 @@ it("supports custom UUID field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -825,6 +848,7 @@ it("supports custom UUID field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -858,6 +882,7 @@ it("supports custom local date field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -890,6 +915,7 @@ it("supports custom local date field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -923,6 +949,7 @@ it("supports custom local time field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -955,6 +982,7 @@ it("supports custom local time field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -988,6 +1016,7 @@ it("supports custom local date time field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -1020,6 +1049,7 @@ it("supports custom local date time field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
+      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {

@@ -26,6 +26,7 @@ create table books (
     released_at date,
     time_to_read interval,
     genre genre,
+    format enum('Digital', 'Physical'),
     weight_grams double precision,
 
     constraint fk_books__author_id
