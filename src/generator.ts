@@ -295,7 +295,10 @@ export class Generator {
     return {
       constantName: this.getEnumConstantName(enumItem.name),
       typeName: this.getEnumTypeName(enumItem.name),
-      values: enumItem.values,
+      values: enumItem.values.map((value) => ({
+        key: /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(value) ? value : `"${value}"`,
+        value,
+      })),
     };
   }
 

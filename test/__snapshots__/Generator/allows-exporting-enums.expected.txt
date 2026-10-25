@@ -7,7 +7,7 @@
  */
 export const kGenre = {
     fantasy: "fantasy",
-    scifi: "scifi",
+    "sci-fi": "sci-fi",
     horror: "horror",
 } as const;
 

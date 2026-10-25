@@ -8,7 +8,7 @@
 {{#if enum}}
 export const {{enum.constantName}} = {
     {{#each enum.values}}
-    {{this}}: "{{this}}",
+    {{this.key}}: "{{this.value}}",
     {{/each}}
 } as const;
 
@@ -63,7 +63,7 @@ import {
 {{#each enums}}
 export const {{constantName}} = {
     {{#each values}}
-    {{this}}: "{{this}}",
+    {{this.key}}: "{{this.value}}",
     {{/each}}
 } as const;
 

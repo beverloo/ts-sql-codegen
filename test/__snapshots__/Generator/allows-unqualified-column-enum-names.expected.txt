@@ -12,6 +12,7 @@ import {
 } from "./Genre";
 
 export const kFormat = {
+    "Audio-Book": "Audio-Book",
     Digital: "Digital",
     Physical: "Physical",
 } as const;

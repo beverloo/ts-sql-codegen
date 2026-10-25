@@ -7,7 +7,7 @@
  */
 export const ECPGenreECS = {
     fantasy: "fantasy",
-    scifi: "scifi",
+    "sci-fi": "sci-fi",
     horror: "horror",
 } as const;
 
@@ -83,6 +83,7 @@ import {
 } from "./ETPGenreETS";
 
 export const ECPBooksFormatECS = {
+    "Audio-Book": "Audio-Book",
     Digital: "Digital",
     Physical: "Physical",
 } as const;
@@ -193,6 +194,7 @@ import {
 } from "./ETPGenreETS";
 
 export const ECPAuthorBooksFormatECS = {
+    "Audio-Book": "Audio-Book",
     Digital: "Digital",
     Physical: "Physical",
 } as const;

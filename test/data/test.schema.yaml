@@ -84,7 +84,7 @@ tables:
     default: null
     comment: ""
   - name: format
-    type: enum('Digital','Physical')
+    type: enum('Audio-Book','Digital','Physical')
     nullable: true
     default: null
     comment: ""
@@ -220,7 +220,7 @@ tables:
     default: null
     comment: ""
   - name: format
-    type: enum('Digital','Physical')
+    type: enum('Audio-Book','Digital','Physical')
     nullable: true
     default: null
     comment: ""
@@ -316,7 +316,7 @@ enums:
 - name: public.genre
   values:
   - fantasy
-  - scifi
+  - sci-fi
   - horror
 driver:
   name: postgres
