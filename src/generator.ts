@@ -116,51 +116,53 @@ export class Generator {
       "utf8"
     );
     const schema = TblsSchema.parse(yaml.load(rawSchema));
-    this.enumFieldMappings = [
-      ...(schema.enums ?? []).map((enumItem) => ({
-        columnType: this.extractName(enumItem.name),
-        generatedField: {
-          type: {
-            kind: "enum" as const,
-            tsType: {
-              name: this.getEnumTypeName(enumItem.name),
-              importPath: path.join(
-                this.opts.outputDirPath,
-                this.getEnumTypeName(enumItem.name)
-              ),
+    if (this.opts.export?.enums) {
+      this.enumFieldMappings = [
+        ...(schema.enums ?? []).map((enumItem) => ({
+          columnType: this.extractName(enumItem.name),
+          generatedField: {
+            type: {
+              kind: "enum" as const,
+              tsType: {
+                name: this.getEnumTypeName(enumItem.name),
+                importPath: path.join(
+                  this.opts.outputDirPath,
+                  this.getEnumTypeName(enumItem.name)
+                ),
+              },
             },
           },
-        },
-      })),
-      ...schema.tables.flatMap((table) =>
-        table.columns
-          .map((col) => {
-            const enumItem = this.extractColumnEnum(table, col);
-            if (!enumItem) {
-              return null;
-            }
-            const enumTypeName = this.getEnumTypeName(enumItem.name);
-            return {
-              tableName: table.name,
-              columnName: col.name,
-              columnType: col.type,
-              generatedField: {
-                type: {
-                  kind: "enum" as const,
-                  dbType: {
-                    name: enumTypeName,
-                  },
-                  tsType: {
-                    name: enumTypeName,
+        })),
+        ...schema.tables.flatMap((table) =>
+          table.columns
+            .map((col) => {
+              const enumItem = this.extractColumnEnum(table, col);
+              if (!enumItem) {
+                return null;
+              }
+              const enumTypeName = this.getEnumTypeName(enumItem.name);
+              return {
+                tableName: table.name,
+                columnName: col.name,
+                columnType: col.type,
+                generatedField: {
+                  type: {
+                    kind: "enum" as const,
+                    dbType: {
+                      name: enumTypeName,
+                    },
+                    tsType: {
+                      name: enumTypeName,
+                    },
                   },
                 },
-              },
-            };
-          })
-          .filter((it): it is NonNullable<typeof it> => it !== null)
-      ),
-    ];
-    this.getFieldMappings.cache.clear?.();
+              };
+            })
+            .filter((it): it is NonNullable<typeof it> => it !== null)
+        ),
+      ];
+      this.getFieldMappings.cache.clear?.();
+    }
     await Promise.all([
       ...schema.tables.map(async (table) => {
         if (this.shouldProcess(table, this.opts.tables)) {
@@ -168,7 +170,10 @@ export class Generator {
         }
       }),
       ...(schema.enums ?? []).map(async (enumItem) => {
-        if (this.shouldProcess(enumItem, this.opts.enums)) {
+        if (
+          this.opts.export?.enums &&
+          this.shouldProcess(enumItem, this.opts.enums)
+        ) {
           await this.generateEnum(enumItem);
         }
       }),
@@ -274,6 +279,9 @@ export class Generator {
   }
 
   protected getEnumsInput(table: Table) {
+    if (!this.opts.export?.enums) {
+      return [];
+    }
     return table.columns
       .filter((col) => {
         return !this.isColumnOmitted(table.name, col);

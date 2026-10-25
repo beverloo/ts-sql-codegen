@@ -13,6 +13,31 @@ const outputDirPath = path.join(__dirname, "generated");
 
 const fieldMappings: FieldMapping[] = [
   {
+    columnType: "genre",
+    generatedField: {
+      type: {
+        kind: "enum",
+        tsType: {
+          name: "Genre",
+          importPath: path.join(__dirname, "helpers/types"),
+        },
+      },
+    },
+  },
+  {
+    columnName: "format",
+    generatedField: {
+      type: {
+        kind: "enum",
+        dbType: { name: "format" },
+        tsType: {
+          name: "Format",
+          importPath: path.join(__dirname, "helpers/types"),
+        },
+      },
+    },
+  },
+  {
     tableName: "chapters",
     columnName: "metadata",
     generatedField: {
@@ -175,6 +200,9 @@ describe("Generator", function () {
       enums: {
         include: ["genre"],
       },
+      export: {
+        enums: true,
+      },
     });
     await generator.generate();
     await snap(await readAllGenerated());
@@ -189,6 +217,9 @@ describe("Generator", function () {
       },
       enums: {
         exclude: ["genre"],
+      },
+      export: {
+        enums: true,
       },
     });
     await generator.generate();
@@ -361,6 +392,19 @@ describe("Generator", function () {
       },
       fieldMappings: [
         {
+          columnType: "genre",
+          generatedField: {
+            type: {
+              kind: "enum",
+              tsType: {
+                name: "Genre",
+                importPath: path.join(__dirname, "helpers/types"),
+                isDefault: true,
+              },
+            },
+          },
+        },
+        {
           tableName: "chapters",
           columnName: "metadata",
           generatedField: {
@@ -398,6 +442,19 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
+        {
+          columnType: "genre",
+          generatedField: {
+            type: {
+              kind: "enum",
+              tsType: {
+                name: "Genre",
+                importPath: path.join(__dirname, "helpers/types"),
+                isDefault: true,
+              },
+            },
+          },
+        },
         {
           tableName: "chapters",
           columnName: "metadata",
@@ -440,7 +497,6 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
-        ...fieldMappings,
         {
           columnType: "genre",
           generatedField: {
@@ -453,7 +509,8 @@ describe("Generator", function () {
               },
             },
           },
-        }
+        },
+        ...fieldMappings,
       ],
     });
     await generator.generate();
@@ -466,6 +523,7 @@ describe("Generator", function () {
       connectionSourcePath,
       outputDirPath,
       export: {
+        enums: true,
         rowTypes: true,
         valuesTypes: true,
         extractedColumns: true,
@@ -502,7 +560,26 @@ describe("Generator", function () {
         viewInstanceNamePrefix: 'VIP',
         viewInstanceNameSuffix: 'VIS',
       },
-      fieldMappings,
+      fieldMappings: [
+        {
+          tableName: "chapters",
+          columnName: "metadata",
+          generatedField: {
+            type: {
+              kind: "custom",
+              dbType: { name: "jsonb" },
+              tsType: {
+                name: "ChapterMetadata",
+                importPath: path.join(__dirname, "helpers/types"),
+              },
+              adapter: {
+                name: "ChapterMetadataAdapter",
+                importPath: path.join(__dirname, "helpers/adapters"),
+              },
+            },
+          },
+        },
+      ],
     });
     await generator.generate();
     await snap(await readAllGenerated());
@@ -518,6 +595,9 @@ describe("Generator", function () {
       },
       enums: {
         include: [],
+      },
+      export: {
+        enums: true,
       },
       naming: {
         enumUseQualifiedName: false,
@@ -540,7 +620,6 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
-        ...fieldMappings,
         {
           columnType: "genre",
           generatedField: {
@@ -553,7 +632,8 @@ describe("Generator", function () {
               },
             },
           },
-        }
+        },
+        ...fieldMappings,
       ],
     });
     await generator.generate();
@@ -573,7 +653,6 @@ describe("Generator", function () {
         tableClasses: false,
       },
       fieldMappings: [
-        ...fieldMappings,
         {
           columnType: "genre",
           generatedField: {
@@ -586,7 +665,8 @@ describe("Generator", function () {
               },
             },
           },
-        }
+        },
+        ...fieldMappings,
       ],
       includeDBTypeWhenIsOptional: true,
     });
@@ -687,7 +767,6 @@ it("supports custom int field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -700,7 +779,8 @@ it("supports custom int field", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
   });
   await generator.generate();
@@ -720,7 +800,6 @@ it("supports custom int field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -733,7 +812,8 @@ it("supports custom int field with db type name", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
     includeDBTypeWhenIsOptional: true,
   });
@@ -754,7 +834,6 @@ it("supports custom double field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -767,7 +846,8 @@ it("supports custom double field", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
   });
   await generator.generate();
@@ -787,7 +867,6 @@ it("supports custom double field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -800,7 +879,8 @@ it("supports custom double field with db type name", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
     includeDBTypeWhenIsOptional: true,
   });
@@ -821,7 +901,6 @@ it("supports custom UUID field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -834,7 +913,8 @@ it("supports custom UUID field", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
   });
   await generator.generate();
@@ -854,7 +934,6 @@ it("supports custom UUID field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -867,7 +946,8 @@ it("supports custom UUID field with db type name", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
     includeDBTypeWhenIsOptional: true,
   });
@@ -888,7 +968,6 @@ it("supports custom local date field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -901,7 +980,8 @@ it("supports custom local date field", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
   });
   await generator.generate();
@@ -921,7 +1001,6 @@ it("supports custom local date field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -934,7 +1013,8 @@ it("supports custom local date field with db type name", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
     includeDBTypeWhenIsOptional: true,
   });
@@ -955,7 +1035,6 @@ it("supports custom local time field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -968,7 +1047,8 @@ it("supports custom local time field", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
   });
   await generator.generate();
@@ -988,7 +1068,6 @@ it("supports custom local time field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -1001,7 +1080,8 @@ it("supports custom local time field with db type name", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
     includeDBTypeWhenIsOptional: true,
   });
@@ -1022,7 +1102,6 @@ it("supports custom local date time field", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -1035,7 +1114,8 @@ it("supports custom local date time field", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
   });
   await generator.generate();
@@ -1055,7 +1135,6 @@ it("supports custom local date time field with db type name", async () => {
       tableClasses: false,
     },
     fieldMappings: [
-      ...fieldMappings,
       {
         columnType: "genre",
         generatedField: {
@@ -1068,7 +1147,8 @@ it("supports custom local date time field with db type name", async () => {
             },
           },
         },
-      }
+      },
+      ...fieldMappings,
     ],
     includeDBTypeWhenIsOptional: true,
   });

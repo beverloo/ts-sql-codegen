@@ -24,21 +24,3 @@ export class AuthorsTable extends Table<DBConnection, 'AuthorsTable'> {
 
 
 /* Generated on: 2020-10-10 */
-
-// Genre.ts :
-/* eslint-disable */
-/**
- * DO NOT EDIT:
- *
- * This file has been auto-generated from database schema using ts-sql-codegen.
- * Any changes will be overwritten.
- */
-export const kGenre = {
-    fantasy: "fantasy",
-    scifi: "scifi",
-    horror: "horror",
-} as const;
-
-export type Genre = keyof typeof kGenre;
-
-/* Generated on: 2020-10-10 */

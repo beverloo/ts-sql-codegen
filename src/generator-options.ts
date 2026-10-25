@@ -29,6 +29,11 @@ export interface ExportTypesOptions extends z.input<typeof ExportTypesOptionsSch
 
 export const ExportOptionsSchema = z.object({
     /**
+     * Export type and value definitions for database and column-scoped enumerations
+     */
+    enums: z.boolean().default(false),
+
+    /**
      * In addition to the table class, also expose instantiated instance of table class
      *
      * Example:

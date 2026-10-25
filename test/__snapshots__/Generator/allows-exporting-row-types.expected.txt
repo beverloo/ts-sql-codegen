@@ -29,19 +29,3 @@ export class AuthorsTable extends Table<DBConnection, 'AuthorsTable'> {
 export type AuthorsSRow = SelectedRow<AuthorsTable>;
 export type AuthorsIRow = InsertableRow<AuthorsTable>;
 export type AuthorsURow = UpdatableRow<AuthorsTable>;
-
-
-// Genre.ts :
-/**
- * DO NOT EDIT:
- *
- * This file has been auto-generated from database schema using ts-sql-codegen.
- * Any changes will be overwritten.
- */
-export const kGenre = {
-    fantasy: "fantasy",
-    scifi: "scifi",
-    horror: "horror",
-} as const;
-
-export type Genre = keyof typeof kGenre;

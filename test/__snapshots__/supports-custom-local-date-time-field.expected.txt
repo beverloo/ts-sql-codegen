@@ -7,14 +7,10 @@
  */
 import { View } from "ts-sql-query/View";
 import type { DBConnection } from "../helpers/connection-source";
+import {
+    Format,
+} from "../helpers/types";
 import Genre from "./enums/Genre";
-
-export const kAuthorBooksFormat = {
-    Digital: "Digital",
-    Physical: "Physical",
-} as const;
-
-export type AuthorBooksFormat = keyof typeof kAuthorBooksFormat;
 
 class AuthorBooksTable extends View<DBConnection, 'AuthorBooksTable'> {
     id = this.optionalColumn('id', 'uuid');
@@ -23,7 +19,7 @@ class AuthorBooksTable extends View<DBConnection, 'AuthorBooksTable'> {
     releasedAt = this.optionalColumn('released_at', 'localDate');
     timeToRead = this.optionalColumn('time_to_read', 'int');
     genre = this.optionalColumn<Genre>('genre', 'customLocalDateTime', 'genre');
-    format = this.optionalColumn<AuthorBooksFormat>('format', 'enum', 'AuthorBooksFormat');
+    format = this.optionalColumn<Format>('format', 'enum', 'format');
     weightGrams = this.optionalColumn('weight_grams', 'double');
     authorName = this.optionalColumn('author_name', 'string');
 
@@ -34,19 +30,3 @@ class AuthorBooksTable extends View<DBConnection, 'AuthorBooksTable'> {
 
 export const tAuthorBooks = new AuthorBooksTable();
 
-
-
-// Genre.ts :
-/**
- * DO NOT EDIT:
- *
- * This file has been auto-generated from database schema using ts-sql-codegen.
- * Any changes will be overwritten.
- */
-export const kGenre = {
-    fantasy: "fantasy",
-    scifi: "scifi",
-    horror: "horror",
-} as const;
-
-export type Genre = keyof typeof kGenre;
