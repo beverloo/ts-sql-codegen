@@ -242,6 +242,10 @@ export const NamingOptionsSchema = z.object({
      * Suffix to be used in the name of the type that represents an enum
      */
     enumTypeNameSuffix: z.string().default(''),
+    /**
+     * Include the table name in the identifier for column-scoped enums
+     */
+    enumUseQualifiedName: z.boolean().default(true),
 });
 
 export interface NamingOptions extends z.input<typeof NamingOptionsSchema> {}

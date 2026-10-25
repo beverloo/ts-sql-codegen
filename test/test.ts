@@ -508,6 +508,25 @@ describe("Generator", function () {
     await snap(await readAllGenerated());
   });
 
+  it("allows unqualified column enum names", async () => {
+    const generator = new Generator({
+      schemaPath,
+      connectionSourcePath,
+      outputDirPath,
+      tables: {
+        include: ["books"],
+      },
+      enums: {
+        include: [],
+      },
+      naming: {
+        enumUseQualifiedName: false,
+      },
+    });
+    await generator.generate();
+    await snap(await readAllGenerated());
+  });
+
   it("supports custom comparable field", async () => {
     const generator = new Generator({
       schemaPath,

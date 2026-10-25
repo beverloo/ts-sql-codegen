@@ -301,7 +301,9 @@ export class Generator {
       return null;
     }
     return {
-      name: `${table.name}_${col.name}`,
+      name: this.naming.enumUseQualifiedName
+        ? `${table.name}_${col.name}`
+        : col.name,
       values,
     };
   }
