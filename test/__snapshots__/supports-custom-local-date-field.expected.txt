@@ -7,10 +7,14 @@
  */
 import { View } from "ts-sql-query/View";
 import type { DBConnection } from "../helpers/connection-source";
-import {
-    Format,
-} from "../helpers/types";
 import Genre from "./enums/Genre";
+
+export const kAuthorBooksFormat = {
+    Digital: "Digital",
+    Physical: "Physical",
+} as const;
+
+export type AuthorBooksFormat = keyof typeof kAuthorBooksFormat;
 
 class AuthorBooksTable extends View<DBConnection, 'AuthorBooksTable'> {
     id = this.optionalColumn('id', 'uuid');
@@ -19,7 +23,7 @@ class AuthorBooksTable extends View<DBConnection, 'AuthorBooksTable'> {
     releasedAt = this.optionalColumn('released_at', 'localDate');
     timeToRead = this.optionalColumn('time_to_read', 'int');
     genre = this.optionalColumn<Genre>('genre', 'customLocalDate', 'genre');
-    format = this.optionalColumn<Format>('format', 'enum', 'format');
+    format = this.optionalColumn<AuthorBooksFormat>('format', 'enum', 'AuthorBooksFormat');
     weightGrams = this.optionalColumn('weight_grams', 'double');
     authorName = this.optionalColumn('author_name', 'string');
 

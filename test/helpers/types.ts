@@ -1,7 +1,5 @@
 import * as z from "zod";
 
-export type Format = "Digital" | "Physical";
-
 export const ChapterMetadataSchema = z.object({
     a: z.string(),
     b: z.string().optional() 

@@ -116,21 +116,50 @@ export class Generator {
       "utf8"
     );
     const schema = TblsSchema.parse(yaml.load(rawSchema));
-    this.enumFieldMappings = (schema.enums ?? []).map((enumItem) => ({
-      columnType: this.extractName(enumItem.name),
-      generatedField: {
-        type: {
-          kind: "enum",
-          tsType: {
-            name: this.getEnumTypeName(enumItem.name),
-            importPath: path.join(
-              this.opts.outputDirPath,
-              this.getEnumTypeName(enumItem.name)
-            ),
+    this.enumFieldMappings = [
+      ...(schema.enums ?? []).map((enumItem) => ({
+        columnType: this.extractName(enumItem.name),
+        generatedField: {
+          type: {
+            kind: "enum" as const,
+            tsType: {
+              name: this.getEnumTypeName(enumItem.name),
+              importPath: path.join(
+                this.opts.outputDirPath,
+                this.getEnumTypeName(enumItem.name)
+              ),
+            },
           },
         },
-      },
-    }));
+      })),
+      ...schema.tables.flatMap((table) =>
+        table.columns
+          .map((col) => {
+            const enumItem = this.extractColumnEnum(table, col);
+            if (!enumItem) {
+              return null;
+            }
+            const enumTypeName = this.getEnumTypeName(enumItem.name);
+            return {
+              tableName: table.name,
+              columnName: col.name,
+              columnType: col.type,
+              generatedField: {
+                type: {
+                  kind: "enum" as const,
+                  dbType: {
+                    name: enumTypeName,
+                  },
+                  tsType: {
+                    name: enumTypeName,
+                  },
+                },
+              },
+            };
+          })
+          .filter((it): it is NonNullable<typeof it> => it !== null)
+      ),
+    ];
     this.getFieldMappings.cache.clear?.();
     await Promise.all([
       ...schema.tables.map(async (table) => {
@@ -182,11 +211,7 @@ export class Generator {
 
   protected async getEnumTemplateInput(enumItem: Enum) {
     return this.preProcessTemplateInput({
-      enum: {
-        constantName: this.getEnumConstantName(enumItem.name),
-        typeName: this.getEnumTypeName(enumItem.name),
-        values: enumItem.values,
-      },
+      enum: this.getEnumInput(enumItem),
     });
   }
 
@@ -194,6 +219,7 @@ export class Generator {
     // Qualified table name with schema prefix
     const tableName = this.extractName(table.name);
     const pkCol = this.findPrimaryKey(table);
+    const enums = this.getEnumsInput(table);
     const fields = this.getFieldsInput(table, pkCol);
     const dbConnectionSource = this.getConnectionSourceImportPath(filePath).replace(/\\/g, "/");
     const exportTableClass = this.opts.export?.tableClasses ?? true;
@@ -232,6 +258,7 @@ export class Generator {
       dbConnectionSource,
       className,
       instName,
+      enums,
       fields,
       adapterImports,
       exportTableClass,
@@ -244,6 +271,39 @@ export class Generator {
       pkField,
       repo
     });
+  }
+
+  protected getEnumsInput(table: Table) {
+    return table.columns
+      .filter((col) => {
+        return !this.isColumnOmitted(table.name, col);
+      })
+      .map((col) => this.extractColumnEnum(table, col))
+      .filter((it): it is Enum => it !== null)
+      .map((it) => this.getEnumInput(it));
+  }
+
+  protected getEnumInput(enumItem: Enum) {
+    return {
+      constantName: this.getEnumConstantName(enumItem.name),
+      typeName: this.getEnumTypeName(enumItem.name),
+      values: enumItem.values,
+    };
+  }
+
+  protected extractColumnEnum(table: Table, col: Column): Enum | null {
+    const match = col.type.match(/^enum\((.+)\)$/i);
+    if (!match) {
+      return null;
+    }
+    const values = [...match[1].matchAll(/'([^']*)'/g)].map((it) => it[1]);
+    if (!values.length) {
+      return null;
+    }
+    return {
+      name: `${table.name}_${col.name}`,
+      values,
+    };
   }
 
   protected getFieldsInput(table: Table, pkCol: Column | null): FieldTmplInput[] {

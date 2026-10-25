@@ -13,19 +13,6 @@ const outputDirPath = path.join(__dirname, "generated");
 
 const fieldMappings: FieldMapping[] = [
   {
-    columnName: "format",
-    generatedField: {
-      type: {
-        kind: "enum",
-        dbType: { name: "format" },
-        tsType: {
-          name: "Format",
-          importPath: path.join(__dirname, "helpers/types"),
-        },
-      },
-    },
-  },
-  {
     tableName: "chapters",
     columnName: "metadata",
     generatedField: {

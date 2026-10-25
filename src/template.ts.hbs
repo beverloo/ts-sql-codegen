@@ -60,6 +60,16 @@ import {
     {{/if}}
 {{/each}}
 
+{{#each enums}}
+export const {{constantName}} = {
+    {{#each values}}
+    {{this}}: "{{this}}",
+    {{/each}}
+} as const;
+
+export type {{typeName}} = keyof typeof {{constantName}};
+
+{{/each}}
 {{#each table.comment}}
 {{this}}
 {{/each}}
